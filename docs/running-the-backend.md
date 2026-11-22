@@ -82,7 +82,7 @@ The real risk is Android's limit on processes that apps start (Android 12+, "pha
 adb shell settings put global settings_enable_monitor_phantom_procs false
 ```
 
-Commands run through Termux's RUN_COMMAND (the app) and Termux:API notification buttons get Termux's `PATH` but don't read a shell profile (`~/.zshenv`, `~/.bashrc`). That's why `intellij-backend` and its launcher wrapper set `IDEA_JDK`, `REMOTE_DEV_SERVER_USE_SELF_CONTAINED_LIBS` and `TMPDIR` themselves. Seen 2026-11-16: in a Termux session opened before `~/.zshenv` existed, `intellij-backend stop` ran IntelliJ's stop on the glibc JBR, which failed at once.
+Commands run through Termux's RUN_COMMAND (the app) and Termux:API notification buttons get Termux's `PATH` but don't read a shell profile (`~/.zshenv`, `~/.bashrc`). That's why `intellij-backend` and its launcher wrapper set `IDEA_JDK`, `REMOTE_DEV_SERVER_USE_SELF_CONTAINED_LIBS` and `TMPDIR` themselves. Seen 2026-11-16: in a Termux session opened before `~/.zshenv` existed, `intellij-backend stop` ran IntelliJ's stop on the glibc JBR, which failed at once. Since ideate-editor 94274c1 the app runs `start` and `stop` through `login -l -c 'exec intellij-backend "$@"'`, so the backend gets `SHELL` (from `~/.termux/shell`) and the profile, as over SSH; without `SHELL` IntelliJ's terminals fall back to Android's `/bin/sh`.
 
 ## Known limitations
 
