@@ -42,6 +42,7 @@ a decision or an action from the user. Docs named without a repo are in ideate-e
 
 | Item | Commit |
 |---|---|
+| Desktop full screen on macOS keeps the window's buttons in the toolbar and no title bar slides down at the top edge, as IntelliJ (JBR `apple.awt.newFullScreenControls` + background `0x57595C`, set before any window opens); checked on the Mac (user request) | ideate-editor 04bbce6 |
 | Tool windows: closing the last tab collapses the window when the backend hides it (Build); a tab's close button also needs the window's canCloseContents, as IntelliJ's ContentTabLabel (Database's tree can't be closed any more); no "Tool window not implemented" flash while content loads (user report) | ideate-editor 4db4972 |
 | Build tab on a phone upright: the 1 px line is the divider (no black gap); at least 12 dp to grab, widens with the pill on a finger's drag; SplitPane takes gap and gapColor (user request) | ideate-editor 0df4599 |
 | Restored scroll rounded to whole lines; the file a history reconnect opens gets its saved caret, selection and scroll and keeps its tab place | ideate-editor 2dfc6e9 |
