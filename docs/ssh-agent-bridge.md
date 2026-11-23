@@ -95,3 +95,20 @@ and a request for identities returns type 12 with 1 key; a missing agent socket 
 SIGTERM removes the state file; the token is not in the log. It stops everything it starts.
 
 Not yet tested on the phone (the `intellij-backend ssh-agent` commands need Termux's `/proc` and `setsid`).
+
+## Checked on the S24+ (2026-11-23)
+
+Ideate 0e628e2 logged in to the Mac (`safeuq@100.107.182.48`, Tailscale) with Termux's key
+`termux-galaxy-s24-plus`, loaded by `intellij-backend ssh-agent start`. Ideate's log:
+
+```
+Termux read ~/.ssh/config: 59 ms
+Termux read ~/.ssh/known_hosts: 106 ms
+Termux read ~/.ssh/agent-bridge: 78 ms
+Termux agent bridge: connected in 83 ms
+SSH log-in with Agent succeeded
+```
+
+The bridge log showed one `accepted` and one `closed`: Ideate closes the agent connection after
+the log-in. No key file was read. The Termux reads take 60–110 ms each here, less than the 0.3 s
+guessed before.
