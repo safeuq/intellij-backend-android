@@ -23,6 +23,7 @@ All documentation is in [`docs/`](docs/):
 | [`jbr-patches.md`](docs/jbr-patches.md) | every patch in the JBR recipe: what it does and why |
 | [`jbr-for-android.md`](docs/jbr-for-android.md) | plan and dated log of the whole build: every failure and fix |
 | [`fsnotifier.md`](docs/fsnotifier.md) | IntelliJ's file watcher built for Android |
+| [`terminal-natives.md`](docs/terminal-natives.md) | the Android builds of JNA's and pty4j's native libraries that IntelliJ's terminal needs, and where they go in IntelliJ's folder |
 | [`remote-dev-server.md`](docs/remote-dev-server.md) | how IntelliJ's remote-dev server behaves: launcher, commands, status files, sessions, Gateway's steps, native parts that need glibc |
 | [`desktop-ui-on-the-phone.md`](docs/desktop-ui-on-the-phone.md) | IntelliJ's full window on the phone over VNC with XFCE: what works, VNC commands and behaviour |
 | [`connections.md`](docs/connections.md) | the IDEate app's connect screen (link, this-phone discovery, history) and the `intellij-backend` contract it relies on |
@@ -33,14 +34,17 @@ All documentation is in [`docs/`](docs/):
 ```
 docs/                          all documentation (above)
 jbr/
-  termux-package/jbr-25/       Termux recipe: build.sh, Termux's patches (00NN), ours (10NN)
-  scripts/build.sh             builds the .deb in Termux's Docker build image
+  termux-package/             Termux recipes, each built by scripts/build.sh <name>
+    jbr-25/                    the JBR: build.sh, Termux's patches (00NN), ours (10NN)
+    intellij-fsnotifier/       IntelliJ's file watcher, our patch
+    pty4j-native/              libpty.so and libutil.so for IntelliJ's terminal
+    jna-native/                JNA's Android libjnidispatch.so
+  scripts/build.sh             builds a recipe's .deb in Termux's Docker build image
   scripts/dev-tree.sh          recreates a patched JBR git tree for writing new patches
   scripts/find-unresolved-symbols.sh
   docker/tar-rosetta-wrapper.sh
 backend/checks/                small Java checks used on the phone
-backend/fsnotifier/            IntelliJ's file watcher built for Android: build.sh, our patch
 backend/termux/intellij-backend  setup/start/stop/status/link for the backend in Termux (called by the app)
 ```
 
-No upstream source is committed. `jbr/scripts/build.sh` fetches termux-packages at a pinned commit into `work/`, and the recipe downloads the JBR source tarball, checked against its SHA-256. `backend/fsnotifier/build.sh` downloads its source files from `intellij-community` at a pinned commit.
+No upstream source is committed. `jbr/scripts/build.sh` fetches termux-packages at a pinned commit into `work/`, and each recipe downloads its source (the JBR tarball, single files from `intellij-community` and pty4j at pinned commits, JNA's Android jar), checked against its SHA-256.

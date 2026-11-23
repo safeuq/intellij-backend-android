@@ -5,7 +5,7 @@ In Termux (aarch64), with the start script:
 ```sh
 apt install ./jbr-25_25.0.4.1_aarch64.deb          # installs to $PREFIX/lib/jvm/jbr-25
 # IntelliJ IDEA 2026.3, linux-aarch64 build, unpacked to ~/intellij/idea-IU-263.7307.200
-# optional: the Android file watcher (backend/fsnotifier/build.sh, see fsnotifier.md) copied to ~/intellij/fsnotifier
+# optional: the Android file watcher (package intellij-fsnotifier, see fsnotifier.md) copied to ~/intellij/fsnotifier
 install -m 755 backend/termux/intellij-backend $PREFIX/bin/   # copy it to the phone first
 intellij-backend setup     # once, and again after installing another IntelliJ; safe to repeat
 

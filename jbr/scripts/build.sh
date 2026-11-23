@@ -1,12 +1,13 @@
 #!/bin/bash
-# Builds the jbr-25 Termux package (aarch64) in Termux's Docker build image.
+# Builds one of our Termux packages (aarch64) in Termux's Docker build image.
 #
 # Fetches termux-packages at a pinned commit into work/termux-packages, copies our recipe in
-# as packages/jbr-25, and runs Termux's build-package.sh there. The JBR source itself is
-# downloaded by the recipe (TERMUX_PKG_SRCURL, checked against TERMUX_PKG_SHA256).
+# as packages/<package>, and runs Termux's build-package.sh there. The source itself is
+# downloaded by the recipe, checked against its SHA-256.
 #
-# Usage: jbr/scripts/build.sh [build-package.sh options]
-#   (no options)  full build:              -I -a aarch64 jbr-25
+# Usage: jbr/scripts/build.sh <package> [build-package.sh options]
+#   <package>     a folder in jbr/termux-package: jbr-25, intellij-fsnotifier, pty4j-native, jna-native
+#   (no options)  full build:              -I -a aarch64 <package>
 #   -f            rebuild after changing the recipe (Termux skips packages it has built before)
 #   -c            continue a failed build without re-downloading or re-patching
 #
@@ -16,16 +17,22 @@ set -euo pipefail
 
 readonly TERMUX_PACKAGES_URL="https://github.com/termux/termux-packages.git"
 readonly TERMUX_PACKAGES_COMMIT="a755405a3af63ed4a05d425230b307d5c9a3ca96"
-readonly PACKAGE_NAME="jbr-25"
+if [[ $# -lt 1 || "$1" == -* ]]; then
+	echo "Usage: $0 <package> [build-package.sh options]" >&2
+	exit 1
+fi
+readonly PACKAGE_NAME="$1"
+shift
 # Our own container, so it never reuses a container whose mount points at another checkout.
 readonly BUILDER_CONTAINER_NAME="intellij-android-builder"
 
 readonly repository_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 readonly termux_packages_dir="${TERMUX_PACKAGES_DIR:-$repository_root/work/termux-packages}"
 readonly recipe_dir="$repository_root/jbr/termux-package/$PACKAGE_NAME"
-readonly patches_notes="$repository_root/docs/jbr-patches.md"
-# Termux's package whose patches ours start from
+readonly jbr_patches_notes="$repository_root/docs/jbr-patches.md"
+# Termux's package whose patches jbr-25's start from
 readonly UPSTREAM_PACKAGE_NAME="openjdk-25"
+readonly fsnotifier_notes="$repository_root/docs/fsnotifier.md"
 readonly tar_wrapper="$repository_root/jbr/docker/tar-rosetta-wrapper.sh"
 readonly output_dir="$repository_root/output"
 readonly log_dir="$repository_root/logs"
@@ -57,9 +64,9 @@ fetch_termux_packages() {
 	fi
 }
 
-# Every patch that differs from Termux's (altered, ours, or left out) must be named in
+# jbr-25: every patch that differs from Termux's (altered, ours, or left out) must be named in
 # docs/jbr-patches.md, so no change goes unrecorded.
-check_patches_documented() {
+check_jbr_patches_documented() {
 	local upstream_dir="$termux_packages_dir/packages/$UPSTREAM_PACKAGE_NAME"
 	local -a undocumented=()
 	local patch_file patch_name
@@ -71,13 +78,13 @@ check_patches_documented() {
 			continue
 		fi
 		# altered Termux patch, or one of ours
-		grep -qF "$patch_name" "$patches_notes" || undocumented+=("$patch_name (changed or added)")
+		grep -qF "$patch_name" "$jbr_patches_notes" || undocumented+=("$patch_name (changed or added)")
 	done
 	for patch_file in "$upstream_dir"/*.patch "$upstream_dir"/*.diff; do
 		[[ -e "$patch_file" ]] || continue
 		patch_name="$(basename "$patch_file")"
 		if [[ ! -f "$recipe_dir/$patch_name" ]]; then
-			grep -qF "$patch_name" "$patches_notes" || undocumented+=("$patch_name (left out)")
+			grep -qF "$patch_name" "$jbr_patches_notes" || undocumented+=("$patch_name (left out)")
 		fi
 	done
 
@@ -86,6 +93,25 @@ check_patches_documented() {
 		printf '  %s\n' "${undocumented[@]}" >&2
 		exit 1
 	fi
+}
+
+# intellij-fsnotifier: every patch must be named in docs/fsnotifier.md.
+check_fsnotifier_patches_documented() {
+	local patch_file
+	for patch_file in "$recipe_dir"/*.patch; do
+		[[ -e "$patch_file" ]] || continue
+		if ! grep -qF "$(basename "$patch_file")" "$fsnotifier_notes"; then
+			echo "$(basename "$patch_file") is not named in docs/fsnotifier.md" >&2
+			exit 1
+		fi
+	done
+}
+
+check_patches_documented() {
+	case "$PACKAGE_NAME" in
+	jbr-25) check_jbr_patches_documented ;;
+	intellij-fsnotifier) check_fsnotifier_patches_documented ;;
+	esac
 }
 
 copy_recipe() {

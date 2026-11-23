@@ -13,18 +13,22 @@ Android doesn't let apps read that file, and `fsnotifier` treats a missing watch
 
 ## Build
 
+A Termux package, built in Docker like `jbr-25` (moved from the plain-NDK `backend/fsnotifier/build.sh` on 2026-11-23):
+
 ```sh
-backend/fsnotifier/build.sh      # writes output/fsnotifier (aarch64, API 24)
+jbr/scripts/build.sh intellij-fsnotifier   # output/intellij-fsnotifier_2025.04.24_aarch64.deb
 ```
 
-It downloads the four source files at `intellij-community` commit `1725b9d80229df4741d8089ba0011a8911e472d2` (the last change to `native/fsNotifier/linux`) into `work/fsnotifier/src`, applies the patches below, and compiles with `aarch64-linux-android24-clang` and the flags from JetBrains' `make.sh`. The script stops if a `.patch` file in `backend/fsnotifier/` isn't named in this file.
+The recipe (`jbr/termux-package/intellij-fsnotifier/`) downloads the four source files at `intellij-community` commit `1725b9d80229df4741d8089ba0011a8911e472d2` (the last change to `native/fsNotifier/linux`), each checked against its SHA-256. Termux applies the patches below, and the recipe compiles with Termux's API 24 toolchain and the flags from JetBrains' `make.sh`. `jbr/scripts/build.sh` stops if a `.patch` file in the recipe isn't named in this file.
+
+The package installs `$PREFIX/opt/intellij-android/bin/fsnotifier`, at its path in IntelliJ's folder. The install script copies it over IntelliJ's own `bin/fsnotifier` ([`terminal-natives.md`](terminal-natives.md) has the same scheme for the terminal's libraries).
 
 ## Use
 
-Copy it to the phone and point IntelliJ at it in the `idea.properties` file of IntelliJ's config folder. Both the remote-dev backend and the desktop IntelliJ read that file:
+Until the install script replaces `bin/fsnotifier`, `intellij-backend setup` still uses a copy at `~/intellij/fsnotifier`: copy it there and point IntelliJ at it in the `idea.properties` file of IntelliJ's config folder. Both the remote-dev backend and the desktop IntelliJ read that file:
 
 ```sh
-scp -P 8022 output/fsnotifier <phone-address>:intellij/fsnotifier
+cp $PREFIX/opt/intellij-android/bin/fsnotifier ~/intellij/fsnotifier
 # on the phone; intellij-backend setup adds the same line to the right config folder:
 echo "idea.filewatcher.executable.path=$HOME/intellij/fsnotifier" >> ~/.config/JetBrains/IntelliJIdea2026.3/idea.properties
 ```

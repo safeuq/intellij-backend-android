@@ -14,7 +14,7 @@ The `.patch` files are the source of truth; the JBR tree is a throwaway workspac
 1. `jbr/scripts/dev-tree.sh`: clones the JBR tag into `work/jbr` and applies every patch as stored (placeholders kept), one commit each.
 2. Edit in `work/jbr`. New patch: commit on top. Existing patch: `git commit --fixup <its commit>`, then `git rebase -i --autosquash`.
 3. Export over the file: `git -C work/jbr format-patch -1 --stdout <commit> > jbr/termux-package/jbr-25/10NN-<name>.patch`
-4. Build: `jbr/scripts/build.sh -f`, then commit the `.patch` change and update this file.
+4. Build: `jbr/scripts/build.sh jbr-25 -f`, then commit the `.patch` change and update this file.
 
 ## Ours
 
