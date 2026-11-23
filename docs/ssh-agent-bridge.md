@@ -59,11 +59,26 @@ message). A taken port is a non-zero exit with a message. The bridge logs one li
 Install the package (build it with `jbr/scripts/build.sh ssh-agent-bridge`), then in Termux:
 
 ```
-intellij-backend ssh-agent start       # starts ssh-agent on a fixed socket, then the bridge
-SSH_AUTH_SOCK=$PREFIX/var/run/intellij-backend/ssh-agent.sock ssh-add
+intellij-backend ssh-agent start       # starts ssh-agent on a fixed socket, then the bridge, then loads your keys
 intellij-backend ssh-agent status      # agent and bridge running, number of keys
 intellij-backend ssh-agent stop
 ```
+
+`start` also loads OpenSSH's default key files (`~/.ssh/id_ed25519`, `id_ecdsa`, `id_rsa` and the `_sk` variants)
+into the agent, unless the agent already holds keys, and prints what it holds (fingerprint and comment, never key
+material):
+
+| How `start` runs | Key without passphrase | Key with passphrase | No key file |
+|---|---|---|---|
+| In a terminal | loaded | `ssh-add` asks for the passphrase | explains why a key is needed and how to make one; `start` still succeeds |
+| Without a terminal (Termux's RUN_COMMAND) | loaded | not loaded; prints `SSH_AUTH_SOCK=<socket> ssh-add ~/.ssh/<file>` to run in a Termux session | same explanation, exit code 0 |
+
+A key is how you log in to another computer without a password: the computer lets you in when the key's public half is
+in its `~/.ssh/authorized_keys`, and the agent proves you hold the private half by signing the login. Make one with
+`ssh-keygen -t ed25519`, then run `start` again. `intellij-backend setup` does the same check: with no default key
+file it explains this and, in a terminal, offers `ssh-keygen -t ed25519` (file `~/.ssh/id_ed25519`, comment
+`$USER@<device model>`) and prints the public key line to add to each computer; without a terminal it only prints the
+explanation and the command. With a key already there it says nothing new.
 
 The socket is `$PREFIX/var/run/intellij-backend/ssh-agent.sock`. To use the same agent in Termux shells, add
 `export SSH_AUTH_SOCK=$PREFIX/var/run/intellij-backend/ssh-agent.sock` to `~/.bashrc`. `start` reuses an agent that

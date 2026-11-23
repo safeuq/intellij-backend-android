@@ -43,6 +43,7 @@ a decision or an action from the user. Docs named without a repo are in ideate-e
 
 | Item | Commit |
 |---|---|
+| `intellij-backend ssh-agent start` loads the default keys into the agent (asks for passphrases in a terminal; without one loads only keys with no passphrase and prints the command for the others; explains why a key is needed when there is none), and `setup` offers `ssh-keygen -t ed25519` when no key exists. Built, tested on the Mac only (key logic with a scratch HOME; interactive paths and the phone untested) | this commit |
 | Leaving a session threw `NetworkOnMainThreadException` (row 47): `ClientSession.stop()` now ends the rd lifetime off the main thread. Also: a launch link no longer gets covered by the saved-screen restore, and a saved link whose backend restarted (new certificate) stops at once (Termux: fetches the new link). `controllerConnected` in the backend status turned out not to block rejoining | ideate-editor aba9315 |
 | ssh-agent bridge: `ssh-agent-bridge` (C, Termux package) and `intellij-backend ssh-agent start\|stop\|status` are built; the Mac end-to-end test passes; not yet tested on the phone (`docs/ssh-agent-bridge.md`) | this commit |
 | Backend dialogs wider than a portrait phone (row 46): Lux windows fit the phone like JetBrains Client; a dialog still cut off (the startup trust dialog) turns the screen to landscape until it closes | ideate-editor 4285f42, aabed26 |

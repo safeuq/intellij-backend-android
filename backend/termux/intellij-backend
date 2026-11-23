@@ -403,6 +403,30 @@ register_with_gateway() {
 	echo "Registered with JetBrains Gateway: $intellij_home"
 }
 
+# A default key lets the Ideate app log in to other computers through the agent.
+setup_ssh_key() {
+	[[ -z "$(default_key_files)" ]] || return 0
+	echo
+	explain_ssh_key "Ideate can then log in to other computers with Termux's key, through the ssh-agent."
+	if [[ ! ( -t 0 && -t 1 ) ]]; then
+		echo "Make one with: ssh-keygen -t ed25519"
+		return 0
+	fi
+	local answer
+	read -r -p "Make one now with ssh-keygen -t ed25519? [Y/n] " answer
+	[[ "${answer:-y}" =~ ^[Yy] ]] || return 0
+	local device_model=""
+	command -v getprop >/dev/null && device_model="$(getprop ro.product.model)"
+	command -v ssh-keygen >/dev/null || fail "$EXIT_FAILED" "ssh-keygen is missing: pkg install openssh"
+	local -r key_comment="${USER:-$(id -un)}@${device_model:-$(hostname)}"
+	mkdir -p "$HOME/.ssh"
+	chmod 700 "$HOME/.ssh"
+	ssh-keygen -t ed25519 -f "$HOME/.ssh/id_ed25519" -C "$key_comment" || fail "$EXIT_FAILED" "ssh-keygen didn't make a key"
+	echo
+	echo "Add this line to ~/.ssh/authorized_keys on each computer you want to log in to:"
+	cat "$HOME/.ssh/id_ed25519.pub"
+}
+
 command_setup() {
 	[[ $# -eq 0 ]] || usage
 	[[ -x "$JBR_HOME/bin/java" ]] || fail "$EXIT_FAILED" "jbr-25 is not installed ($JBR_HOME): apt install ./jbr-25_*_aarch64.deb"
@@ -422,6 +446,7 @@ command_setup() {
 	register_with_gateway "$launcher" "$intellij_home"
 	create_notification_channel
 	echo "Notification channel: $NOTIFICATION_CHANNEL_NAME"
+	setup_ssh_key
 
 	echo
 	echo "Left to you (Android settings this script can't change):"
@@ -620,6 +645,56 @@ agent_state() {
 	echo "$exit_code"
 }
 
+# The key files OpenSSH's ssh and ssh-add use when no key is named, that exist.
+default_key_files() {
+	local name
+	for name in id_rsa id_ecdsa id_ecdsa_sk id_ed25519 id_ed25519_sk; do
+		[[ -f "$HOME/.ssh/$name" ]] && echo "$HOME/.ssh/$name"
+	done
+	return 0
+}
+
+# Why a key is needed, in plain words. $1 is what to say about the next step.
+explain_ssh_key() {
+	echo "No SSH key in ~/.ssh. A key is how you log in to another computer without a password: the computer lets"
+	echo "you in when the key's public half is in its ~/.ssh/authorized_keys, and the ssh-agent proves you hold the"
+	echo "private half by signing the login, so the private key never leaves Termux."
+	echo "$1"
+}
+
+# Loads the default keys into our agent (when it holds none) and prints what it holds.
+# In a terminal ssh-add asks for passphrases. Without one (Termux's RUN_COMMAND) it loads only the
+# keys that have no passphrase, and prints the command for each of the others.
+load_default_keys() {
+	local -a key_files
+	mapfile -t key_files < <(default_key_files)
+	if [[ ${#key_files[@]} -eq 0 ]]; then
+		explain_ssh_key "Make one with: ssh-keygen -t ed25519
+Then run intellij-backend ssh-agent start again, and add ~/.ssh/id_ed25519.pub to each computer's ~/.ssh/authorized_keys."
+		return 0
+	fi
+	if [[ "$(agent_state)" == 0 ]]; then
+		echo "The agent already holds keys; not loading again."
+	elif [[ -t 0 && -t 1 ]]; then
+		SSH_AUTH_SOCK="$AGENT_SOCKET" ssh-add || echo "ssh-add didn't load every key; run: SSH_AUTH_SOCK=$AGENT_SOCKET ssh-add"
+	else
+		local key_file
+		for key_file in "${key_files[@]}"; do
+			# An empty passphrase opens only a key that has none.
+			if ssh-keygen -y -P "" -f "$key_file" >/dev/null 2>&1; then
+				SSH_AUTH_SOCK="$AGENT_SOCKET" SSH_ASKPASS_REQUIRE=never ssh-add "$key_file" </dev/null >/dev/null 2>&1 \
+					|| echo "Couldn't load $key_file; run: SSH_AUTH_SOCK=$AGENT_SOCKET ssh-add $key_file"
+			else
+				echo "$key_file has a passphrase; load it in a Termux session: SSH_AUTH_SOCK=$AGENT_SOCKET ssh-add $key_file"
+			fi
+		done
+	fi
+	if [[ "$(agent_state)" == 0 ]]; then
+		echo "Keys in the agent:"
+		SSH_AUTH_SOCK="$AGENT_SOCKET" ssh-add -l
+	fi
+}
+
 command_ssh_agent_start() {
 	command -v ssh-agent >/dev/null && command -v ssh-add >/dev/null || fail "$EXIT_FAILED" "ssh-agent or ssh-add is missing: pkg install openssh"
 	command -v ssh-agent-bridge >/dev/null \
@@ -658,7 +733,8 @@ command_ssh_agent_start() {
 	fi
 
 	echo
-	echo "Add a key:        SSH_AUTH_SOCK=$AGENT_SOCKET ssh-add"
+	load_default_keys
+	echo
 	echo "Use it in shells: add this line to your shell profile (~/.zshrc or ~/.bashrc)"
 	echo "                  export SSH_AUTH_SOCK=$AGENT_SOCKET"
 }
