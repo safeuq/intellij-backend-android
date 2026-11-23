@@ -8,7 +8,7 @@ Decided with the user on 2026-11-16. The app's connect screen has three parts:
 
 Build order: saved pasted links first, then Termux on this phone, then SSH.
 
-Ownership: the screens and the connection logic belong to the UI session ([IDEate](https://github.com/safeuq/ideate-editor)). The phone side (the `intellij-backend` command, Termux setup) belongs to the runtime session (`backend/`). The contract between them is below.
+Ownership: the screens and the connection logic belong to the UI session ([Ideate](https://github.com/safeuq/ideate-editor)). The phone side (the `intellij-backend` command, Termux setup) belongs to the runtime session (`backend/`). The contract between them is below.
 
 ## Why history can't just store the link
 
@@ -71,7 +71,7 @@ The command is `intellij-backend`, at `$PREFIX/bin/intellij-backend` (`/data/dat
 | `status --json` | `{"running":true,"project":"/data/…/smoke","port":5990,"listenOn":"127.0.0.1","joinLink":"tcp://…","controllerConnected":true,"projects":[{"projectPath":"/data/…/smoke","controllerConnected":true},{"projectPath":"/data/…/commons","controllerConnected":false}]}` or `{"running":false}`. `project`: the project in IntelliJ's status file, which IntelliJ rewrites to the **last** project opened (seen on the phone 2026-11-19: after `start knowledge-base` in xtool's backend, `project` was knowledge-base); `projects` (since 2026-11-19): every open project, all on the same join link. `controllerConnected`: some client is connected now (could be this app) | `0`, `1` the backend didn't answer |
 | `stop` | nothing | `0` (also when not running). Stops the whole backend, every open project with it (seen on the phone 2026-11-19 with xtool and knowledge-base open) |
 
-While a backend runs, Termux:API shows an ongoing notification (`termux-notification --id intellij-backend`) on its own channel, "IntelliJ Backend" (id `intellij-backend`). Tapping it opens the app (`intellijandroid.client.android/.MainActivity`). It goes through three states:
+While a backend runs, Termux:API shows an ongoing notification (`termux-notification --id intellij-backend`) on its own channel, "IntelliJ Backend" (id `intellij-backend`). Tapping it opens the app (`io.github.safeuq.ideate.client.android/.MainActivity`). It goes through three states:
 
 | State | Title | Text | Button |
 |---|---|---|---|

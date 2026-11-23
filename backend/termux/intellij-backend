@@ -44,7 +44,7 @@ readonly NOTIFICATION_CHANNEL_NAME="IntelliJ Backend"
 readonly NOTIFICATION_ICON="code"
 # The process group of the launcher that command_run started, while it runs.
 readonly LAUNCHER_PID_FILE="$LOG_DIR/launcher.pid"
-readonly ANDROID_APP_ACTIVITY="intellijandroid.client.android/.MainActivity"
+readonly ANDROID_APP_ACTIVITY="io.github.safeuq.ideate.client.android/.MainActivity"
 # setup moves IntelliJ's launcher here and puts a wrapper in its place.
 readonly REAL_LAUNCHER_NAME="remote-dev-server.real.sh"
 readonly WRAPPER_MARKER="Written by intellij-backend setup"

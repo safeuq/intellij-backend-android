@@ -8,7 +8,7 @@ Running IntelliJ IDEA's backend natively on Android, with no Linux VM or proot, 
 |---|---|
 | `jbr/`: JetBrains Runtime 25 built for Android (bionic), as a Termux package | Works. IntelliJ IDEA 2026.3's remote-dev server runs on it in Termux; JetBrains Client and Gateway on another machine edit, highlight and complete against it |
 | `backend/`: running IntelliJ on the phone | `intellij-backend` (setup, start/stop/status, a notification with a Stop button) and IntelliJ's file watcher built for Android |
-| Native frontend | Moved to [safeuq/ideate-editor](https://github.com/safeuq/ideate-editor) (the IDEate Android app and a desktop build of the same code), with its docs: the split-mode protocol, the client and the IntelliJ look |
+| Native frontend | Moved to [safeuq/ideate-editor](https://github.com/safeuq/ideate-editor) (the Ideate Android app and a desktop build of the same code), with its docs: the split-mode protocol, the client and the IntelliJ look |
 
 Why a custom JBR: IntelliJ's remote-dev server needs JetBrains Runtime (`com.jetbrains.JBR.isGraphicsUtilsSupported()` must be `true`), and the JBR that ships with IntelliJ is built for glibc, which Android doesn't have.
 
@@ -26,8 +26,8 @@ All documentation is in [`docs/`](docs/):
 | [`terminal-natives.md`](docs/terminal-natives.md) | the Android builds of JNA's and pty4j's native libraries that IntelliJ's terminal needs, and where they go in IntelliJ's folder |
 | [`remote-dev-server.md`](docs/remote-dev-server.md) | how IntelliJ's remote-dev server behaves: launcher, commands, status files, sessions, Gateway's steps, native parts that need glibc |
 | [`desktop-ui-on-the-phone.md`](docs/desktop-ui-on-the-phone.md) | IntelliJ's full window on the phone over VNC with XFCE: what works, VNC commands and behaviour |
-| [`connections.md`](docs/connections.md) | the IDEate app's connect screen (link, this-phone discovery, history) and the `intellij-backend` contract it relies on |
-| [`pending.md`](docs/pending.md) | the one list of open work for the backend and the IDEate client: owner, status, where the details are |
+| [`connections.md`](docs/connections.md) | the Ideate app's connect screen (link, this-phone discovery, history) and the `intellij-backend` contract it relies on |
+| [`pending.md`](docs/pending.md) | the one list of open work for the backend and the Ideate client: owner, status, where the details are |
 
 ## Layout
 
