@@ -1,7 +1,7 @@
 // Relays localhost TCP connections to an ssh-agent Unix socket, for clients that hold the right
 // token. Why and how: docs/ssh-agent-bridge.md.
 //
-//   ideate-agent-bridge [--port N] [--agent <socket>]     (default port 5980, agent $SSH_AUTH_SOCK)
+//   ssh-agent-bridge [--port N] [--agent <socket>]     (default port 5980, agent $SSH_AUTH_SOCK)
 #define _POSIX_C_SOURCE 200809L
 #include <arpa/inet.h>
 #include <errno.h>
@@ -27,7 +27,7 @@ static char state_path[PATH_MAX];
 static char token[TOKEN_HEX_LENGTH + 1];
 
 static void fail(const char *what) {
-	fprintf(stderr, "ideate-agent-bridge: %s: %s\n", what, strerror(errno));
+	fprintf(stderr, "ssh-agent-bridge: %s: %s\n", what, strerror(errno));
 	exit(1);
 }
 
@@ -48,19 +48,19 @@ static void make_token(void) {
 	}
 }
 
-// ~/.ideate/agent-bridge holds "<port> <token>\n", written as a 0600 temp file and renamed.
+// ~/.ssh/agent-bridge holds "<port> <token>\n", written as a 0600 temp file and renamed.
 static void write_state_file(int port) {
 	const char *home = getenv("HOME");
 	if (home == NULL || home[0] == '\0') {
-		fprintf(stderr, "ideate-agent-bridge: HOME is not set\n");
+		fprintf(stderr, "ssh-agent-bridge: HOME is not set\n");
 		exit(1);
 	}
 	char directory[PATH_MAX], temporary_path[PATH_MAX];
-	snprintf(directory, sizeof directory, "%s/.ideate", home);
+	snprintf(directory, sizeof directory, "%s/.ssh", home);
 	snprintf(state_path, sizeof state_path, "%s/agent-bridge", directory);
 	snprintf(temporary_path, sizeof temporary_path, "%s/agent-bridge.%d.tmp", directory, (int)getpid());
 	if (mkdir(directory, 0700) != 0 && errno != EEXIST) {
-		fail("can't create ~/.ideate");
+		fail("can't create ~/.ssh");
 	}
 	int file = open(temporary_path, O_WRONLY | O_CREAT | O_EXCL, 0600);
 	if (file < 0) {
@@ -165,13 +165,13 @@ static void relay(int client, int agent) {
 static void serve(int client, const char *agent_path) {
 	char given[TOKEN_HEX_LENGTH + 1];
 	if (read_with_deadline(client, given, sizeof given) != 0 || !token_matches(given)) {
-		fprintf(stderr, "ideate-agent-bridge: token rejected\n");
+		fprintf(stderr, "ssh-agent-bridge: token rejected\n");
 		(void)!write(client, "T", 1);
 		return;
 	}
 	int agent = connect_to_agent(agent_path);
 	if (agent < 0) {
-		fprintf(stderr, "ideate-agent-bridge: agent unreachable (%s)\n", agent_path);
+		fprintf(stderr, "ssh-agent-bridge: agent unreachable (%s)\n", agent_path);
 		(void)!write(client, "A", 1);
 		return;
 	}
@@ -189,16 +189,16 @@ int main(int argc, char **argv) {
 		} else if (strcmp(argv[index], "--agent") == 0 && index + 1 < argc) {
 			agent_path = argv[++index];
 		} else {
-			fprintf(stderr, "usage: ideate-agent-bridge [--port N] [--agent <socket>]\n");
+			fprintf(stderr, "usage: ssh-agent-bridge [--port N] [--agent <socket>]\n");
 			return 2;
 		}
 	}
 	if (port < 1 || port > 65535) {
-		fprintf(stderr, "ideate-agent-bridge: --port needs a number from 1 to 65535\n");
+		fprintf(stderr, "ssh-agent-bridge: --port needs a number from 1 to 65535\n");
 		return 2;
 	}
 	if (agent_path == NULL || agent_path[0] == '\0') {
-		fprintf(stderr, "ideate-agent-bridge: no agent socket: pass --agent <path> or set SSH_AUTH_SOCK\n");
+		fprintf(stderr, "ssh-agent-bridge: no agent socket: pass --agent <path> or set SSH_AUTH_SOCK\n");
 		return 2;
 	}
 
@@ -221,21 +221,21 @@ int main(int argc, char **argv) {
 	sigaction(SIGINT, &stop_action, NULL);
 	signal(SIGCHLD, SIG_IGN);
 	signal(SIGPIPE, SIG_IGN);
-	fprintf(stderr, "ideate-agent-bridge: listening on 127.0.0.1:%d, agent %s\n", port, agent_path);
+	fprintf(stderr, "ssh-agent-bridge: listening on 127.0.0.1:%d, agent %s\n", port, agent_path);
 
 	while (!stop_requested) {
 		int client = accept(listener, NULL, NULL);
 		if (client < 0) {
 			continue;
 		}
-		fprintf(stderr, "ideate-agent-bridge: accepted\n");
+		fprintf(stderr, "ssh-agent-bridge: accepted\n");
 		pid_t child = fork();
 		if (child == 0) {
 			close(listener);
 			signal(SIGTERM, SIG_DFL);
 			signal(SIGINT, SIG_DFL);
 			serve(client, agent_path);
-			fprintf(stderr, "ideate-agent-bridge: closed\n");
+			fprintf(stderr, "ssh-agent-bridge: closed\n");
 			_exit(0);
 		}
 		close(client);

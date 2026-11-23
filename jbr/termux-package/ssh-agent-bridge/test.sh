@@ -1,7 +1,7 @@
 #!/bin/bash
 # End-to-end check on a machine with cc, ssh-agent, ssh-add, ssh-keygen and python3 (python is for
 # this test only). Starts a private agent and the bridge in a scratch folder and stops both.
-#   jbr/termux-package/ideate-agent-bridge/test.sh [port]      (default 5996)
+#   jbr/termux-package/ssh-agent-bridge/test.sh [port]      (default 5996)
 set -euo pipefail
 
 readonly here="$(cd "$(dirname "$0")" && pwd)"
@@ -16,7 +16,7 @@ cleanup() {
 }
 trap cleanup EXIT
 
-cc -std=c11 -Wall -Wextra -Wpedantic -O2 "$here/ideate-agent-bridge.c" -o "$scratch/bridge"
+cc -std=c11 -Wall -Wextra -Wpedantic -O2 "$here/ssh-agent-bridge.c" -o "$scratch/bridge"
 ssh-keygen -q -t ed25519 -N "" -f "$scratch/key"
 ssh-agent -a "$scratch/agent.sock" >/dev/null
 agent_pid="$(pgrep -f "ssh-agent -a $scratch/agent.sock")"
@@ -26,7 +26,7 @@ mkdir "$scratch/home"
 export HOME="$scratch/home"
 "$scratch/bridge" --port "$port" --agent "$scratch/agent.sock" 2>"$scratch/bridge.log" &
 bridge_pid=$!
-state_file="$HOME/.ideate/agent-bridge"
+state_file="$HOME/.ssh/agent-bridge"
 for _ in $(seq 50); do [[ -f "$state_file" ]] && break; sleep 0.1; done
 [[ -f "$state_file" ]] || { echo "FAIL: no state file"; cat "$scratch/bridge.log"; exit 1; }
 
@@ -69,8 +69,8 @@ PYTHON
 mkdir "$scratch/home2"
 HOME="$scratch/home2" "$scratch/bridge" --port "$((port + 1))" --agent "$scratch/missing.sock" 2>>"$scratch/bridge.log" &
 second_pid=$!
-for _ in $(seq 50); do [[ -f "$scratch/home2/.ideate/agent-bridge" ]] && break; sleep 0.1; done
-python3 -I - "$((port + 1))" "$scratch/home2/.ideate/agent-bridge" <<'PYTHON'
+for _ in $(seq 50); do [[ -f "$scratch/home2/.ssh/agent-bridge" ]] && break; sleep 0.1; done
+python3 -I - "$((port + 1))" "$scratch/home2/.ssh/agent-bridge" <<'PYTHON'
 import socket, sys
 port, state_file = int(sys.argv[1]), sys.argv[2]
 token = open(state_file).read().split()[1]
@@ -81,7 +81,7 @@ print("ok: agent socket missing -> A")
 PYTHON
 kill "$second_pid"
 wait "$second_pid" 2>/dev/null || true
-[[ ! -e "$scratch/home2/.ideate/agent-bridge" ]] || { echo "FAIL: second state file left"; exit 1; }
+[[ ! -e "$scratch/home2/.ssh/agent-bridge" ]] || { echo "FAIL: second state file left"; exit 1; }
 
 # Port taken: the first bridge still holds $port.
 if "$scratch/bridge" --port "$port" --agent "$scratch/agent.sock" 2>"$scratch/taken.log"; then

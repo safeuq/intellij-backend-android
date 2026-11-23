@@ -27,7 +27,7 @@ All documentation is in [`docs/`](docs/):
 | [`remote-dev-server.md`](docs/remote-dev-server.md) | how IntelliJ's remote-dev server behaves: launcher, commands, status files, sessions, Gateway's steps, native parts that need glibc |
 | [`desktop-ui-on-the-phone.md`](docs/desktop-ui-on-the-phone.md) | IntelliJ's full window on the phone over VNC with XFCE: what works, VNC commands and behaviour |
 | [`connections.md`](docs/connections.md) | the Ideate app's connect screen (link, this-phone discovery, history) and the `intellij-backend` contract it relies on |
-| [`ssh-agent-bridge.md`](docs/ssh-agent-bridge.md) | `ideate-agent-bridge` and `intellij-backend ssh-agent`: how the Ideate app uses Termux's ssh-agent keys over localhost TCP with a token |
+| [`ssh-agent-bridge.md`](docs/ssh-agent-bridge.md) | `ssh-agent-bridge` and `intellij-backend ssh-agent`: how the Ideate app uses Termux's ssh-agent keys over localhost TCP with a token |
 | [`pending.md`](docs/pending.md) | the one list of open work for the backend and the Ideate client: owner, status, where the details are |
 
 ## Layout

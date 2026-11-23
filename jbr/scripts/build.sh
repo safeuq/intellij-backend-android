@@ -6,7 +6,7 @@
 # downloaded by the recipe, checked against its SHA-256.
 #
 # Usage: jbr/scripts/build.sh <package> [build-package.sh options]
-#   <package>     a folder in jbr/termux-package: jbr-25, intellij-fsnotifier, pty4j-native, jna-native, ideate-agent-bridge
+#   <package>     a folder in jbr/termux-package: jbr-25, intellij-fsnotifier, pty4j-native, jna-native, ssh-agent-bridge
 #   (no options)  full build:              -I -a aarch64 <package>
 #   -f            rebuild after changing the recipe (Termux skips packages it has built before)
 #   -c            continue a failed build without re-downloading or re-patching

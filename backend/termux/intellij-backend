@@ -50,7 +50,7 @@ readonly ANDROID_APP_ACTIVITY="io.github.safeuq.ideate.client.android/.MainActiv
 readonly REAL_LAUNCHER_NAME="remote-dev-server.real.sh"
 readonly WRAPPER_MARKER="Written by intellij-backend setup"
 readonly FSNOTIFIER_PATH="$HOME/intellij/fsnotifier"
-# ssh-agent and ideate-agent-bridge (docs/ssh-agent-bridge.md): a fixed socket, so the Ideate app
+# ssh-agent and ssh-agent-bridge (docs/ssh-agent-bridge.md): a fixed socket, so the Ideate app
 # and the shell profile always know where the agent is. Each program has a pid file next to it.
 readonly AGENT_RUN_DIR="$TERMUX_PREFIX/var/run/intellij-backend"
 readonly AGENT_SOCKET="$AGENT_RUN_DIR/ssh-agent.sock"
@@ -622,8 +622,8 @@ agent_state() {
 
 command_ssh_agent_start() {
 	command -v ssh-agent >/dev/null && command -v ssh-add >/dev/null || fail "$EXIT_FAILED" "ssh-agent or ssh-add is missing: pkg install openssh"
-	command -v ideate-agent-bridge >/dev/null \
-		|| fail "$EXIT_FAILED" "ideate-agent-bridge is not installed: apt install ./ideate-agent-bridge_*_aarch64.deb (docs/ssh-agent-bridge.md)"
+	command -v ssh-agent-bridge >/dev/null \
+		|| fail "$EXIT_FAILED" "ssh-agent-bridge is not installed: apt install ./ssh-agent-bridge_*_aarch64.deb (docs/ssh-agent-bridge.md)"
 	mkdir -p "$AGENT_RUN_DIR" "$LOG_DIR"
 	chmod 700 "$AGENT_RUN_DIR"
 
@@ -640,21 +640,21 @@ command_ssh_agent_start() {
 	fi
 
 	local bridge_pid
-	bridge_pid="$(program_pid "$BRIDGE_PID_FILE" ideate-agent-bridge)"
+	bridge_pid="$(program_pid "$BRIDGE_PID_FILE" ssh-agent-bridge)"
 	if [[ -n "$bridge_pid" ]]; then
-		echo "ideate-agent-bridge already running (pid $bridge_pid)"
+		echo "ssh-agent-bridge already running (pid $bridge_pid)"
 	else
 		local -r bridge_log="$LOG_DIR/agent-bridge.log"
-		setsid ideate-agent-bridge --agent "$AGENT_SOCKET" </dev/null >>"$bridge_log" 2>&1 &
+		setsid ssh-agent-bridge --agent "$AGENT_SOCKET" </dev/null >>"$bridge_log" 2>&1 &
 		bridge_pid=$!
 		echo "$bridge_pid" >"$BRIDGE_PID_FILE"
 		sleep 1
-		if [[ -z "$(program_pid "$BRIDGE_PID_FILE" ideate-agent-bridge)" ]]; then
+		if [[ -z "$(program_pid "$BRIDGE_PID_FILE" ssh-agent-bridge)" ]]; then
 			tail -n 5 "$bridge_log" >&2
 			rm -f "$BRIDGE_PID_FILE"
-			fail "$EXIT_FAILED" "ideate-agent-bridge exited at once; log: $bridge_log"
+			fail "$EXIT_FAILED" "ssh-agent-bridge exited at once; log: $bridge_log"
 		fi
-		echo "ideate-agent-bridge started (pid $bridge_pid), log: $bridge_log"
+		echo "ssh-agent-bridge started (pid $bridge_pid), log: $bridge_log"
 	fi
 
 	echo
@@ -666,10 +666,10 @@ command_ssh_agent_start() {
 # Stops only what this command started, and only when the pid still belongs to that program.
 command_ssh_agent_stop() {
 	local pid
-	pid="$(program_pid "$BRIDGE_PID_FILE" ideate-agent-bridge)"
+	pid="$(program_pid "$BRIDGE_PID_FILE" ssh-agent-bridge)"
 	if [[ -n "$pid" ]]; then
 		kill "$pid"
-		echo "ideate-agent-bridge stopped (pid $pid)"
+		echo "ssh-agent-bridge stopped (pid $pid)"
 	fi
 	rm -f "$BRIDGE_PID_FILE"
 	pid="$(program_pid "$AGENT_PID_FILE" ssh-agent)"
@@ -681,7 +681,7 @@ command_ssh_agent_stop() {
 }
 
 command_ssh_agent_status() {
-	local -r bridge_pid="$(program_pid "$BRIDGE_PID_FILE" ideate-agent-bridge)"
+	local -r bridge_pid="$(program_pid "$BRIDGE_PID_FILE" ssh-agent-bridge)"
 	if [[ -n "$bridge_pid" ]]; then echo "bridge: running (pid $bridge_pid)"; else echo "bridge: not running"; fi
 	local -r state="$(agent_state)"
 	case "$state" in

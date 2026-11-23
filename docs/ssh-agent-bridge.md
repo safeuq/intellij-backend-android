@@ -1,7 +1,7 @@
 # ssh-agent bridge for the Ideate app
 
 Ideate (the Android app) logs in over SSH with keys that Termux's `ssh-agent` holds, so the private key never leaves
-Termux. `ideate-agent-bridge` is the small C program in Termux that makes this possible.
+Termux. `ssh-agent-bridge` is the small C program in Termux that makes this possible.
 
 ## Why a bridge
 
@@ -20,7 +20,7 @@ Ideate reads the token once through Termux's `RUN_COMMAND`, which only apps hold
 
 ## Protocol
 
-State file `~/.ideate/agent-bridge` (folder `0700`, file `0600`), one line, written at start by a temp file and a
+State file `~/.ssh/agent-bridge` (folder `0700`, file `0600`), one line, written at start by a temp file and a
 rename, removed when the bridge exits on SIGTERM or SIGINT (only if it still holds its own token):
 
 ```
@@ -56,7 +56,7 @@ message). A taken port is a non-zero exit with a message. The bridge logs one li
 
 ## Set up
 
-Install the package (build it with `jbr/scripts/build.sh ideate-agent-bridge`), then in Termux:
+Install the package (build it with `jbr/scripts/build.sh ssh-agent-bridge`), then in Termux:
 
 ```
 intellij-backend ssh-agent start       # starts ssh-agent on a fixed socket, then the bridge
@@ -69,11 +69,11 @@ The socket is `$PREFIX/var/run/intellij-backend/ssh-agent.sock`. To use the same
 `export SSH_AUTH_SOCK=$PREFIX/var/run/intellij-backend/ssh-agent.sock` to `~/.bashrc`. `start` reuses an agent that
 already answers on that socket, removes a stale socket file left by a crashed agent, and starts the bridge only if it
 isn't running. `stop` ends only the processes whose pid files it wrote, and only when the pid still belongs to
-`ssh-agent` or `ideate-agent-bridge`. The bridge log is `~/.local/state/intellij-backend/agent-bridge.log`.
+`ssh-agent` or `ssh-agent-bridge`. The bridge log is `~/.local/state/intellij-backend/agent-bridge.log`.
 
 ## Test
 
-`jbr/termux-package/ideate-agent-bridge/test.sh [port]` (default 5996) builds the bridge with the local `cc`, starts a
+`jbr/termux-package/ssh-agent-bridge/test.sh [port]` (default 5996) builds the bridge with the local `cc`, starts a
 private `ssh-agent` with a throwaway ed25519 key and a bridge with `HOME` in a scratch folder, and checks: the state
 file is `0600` and looks like `<port> <64 hex>`; a wrong token and a short token get `T`; the right token gets `0x00`
 and a request for identities returns type 12 with 1 key; a missing agent socket gets `A`; a taken port exits non-zero;
