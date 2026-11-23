@@ -42,6 +42,7 @@ a decision or an action from the user. Docs named without a repo are in ideate-e
 
 | Item | Commit |
 |---|---|
+| Desktop full screen on macOS, corrected: buttons visible at rest with a grey minimize, on the toolbar's centre line, no overlap with the project widget (title bar set once; ARGB background; IntelliJ's GAP_FOR_BUTTONS; `run` on a java launcher marked SDK 26, as IntelliJ's own launcher). Measured equal to IntelliJ inside both processes (user report) | ideate-editor f75b0e0 |
 | Phone upright: after closing the last editor tab, a swipe to a side page was blocked in one direction (the editor's and tab row's sideways scrolls kept stale values); they reset on dispose (user report) | ideate-editor 1a46454 |
 | Lux console scrolls sideways on a phone (shares the tool window's scroll); console toolbar buttons cut out 3 dp further right; no repaint of a removed Lux panel ("Not bound ...requestRepaint" on the S24) (user report) | ideate-editor e1c08d4 |
 | Phone upright: any BuildView is stacked (Build, and Run for a Gradle or Maven task), not only the Build window; toolbar strips worked out from the tree's and console's bounds; Run keeps its own toolbar row whole (user request) | ideate-editor fc1f086 |
