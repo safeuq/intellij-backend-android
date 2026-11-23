@@ -7,7 +7,8 @@
 #   intellij-backend stop                                   stops the running backend
 #   intellij-backend setup                                  one-time setup in Termux (safe to repeat)
 #
-# Exit codes: 0 ok, 1 failed, 2 usage, 3 not running, 4 another IntelliJ uses the same settings.
+# Exit codes: 0 ok, 1 failed, 2 usage, 3 not running, 4 another IntelliJ uses the same settings,
+# 5 the notification couldn't be shown (start only; nothing was started).
 #
 # One backend serves every project it has open, through one join link: `start` for a second
 # project asks the running backend to open it too, as JetBrains Gateway does.
@@ -18,8 +19,9 @@
 # JetBrains Gateway reads over SSH.
 #
 # While a backend runs, Termux:API shows an ongoing notification on the "IntelliJ Backend" channel:
-# starting (Cancel), running with its projects (Stop), stopping. It needs the Termux:API app;
-# without it the backend still runs, just without the notification. `setup`
+# starting (Cancel), running with its projects (Stop), stopping. A backend doesn't start without
+# it: when the "starting" notification can't be posted, start (and a Gateway start) fails with
+# exit code 5 before IntelliJ runs. Later posts only warn, so stop always goes through. `setup`
 # puts a wrapper in place of IntelliJ's bin/remote-dev-server.sh, so this also happens for
 # backends that JetBrains Gateway or a hand-typed `remote-dev-server.sh run` starts.
 #
@@ -60,6 +62,7 @@ readonly EXIT_FAILED=1
 readonly EXIT_USAGE=2
 readonly EXIT_NOT_RUNNING=3
 readonly EXIT_CONFLICT=4
+readonly EXIT_NO_NOTIFICATION=5
 
 fail() {
 	local -r exit_code="$1"
@@ -147,7 +150,7 @@ open_in_running_backend() {
 	while [[ $waited_seconds -lt $START_TIMEOUT_SECONDS ]]; do
 		live_status="$(live_status_json "$status_file")"
 		if has_project "$live_status" "$project"; then
-			show_notification running "$live_status"
+			show_notification running "$live_status" || true
 			jq -r '.joinLink' <<<"$live_status"
 			return
 		fi
@@ -182,6 +185,10 @@ create_notification_channel() {
 # Its status-bar icon can only be one of its own (Material) icons. No large icon: --image-path
 # also shows the picture big when the notification is expanded. termux-notification waits forever
 # when the Termux:API app is missing, hence the timeouts.
+#
+# Returns 1, with the reason on stderr, when the notification isn't showing afterwards.
+# termux-notification's exit code proves nothing (0 also when nothing was posted), so the post is
+# read back with termux-notification-list, which needs Termux:API's notification access.
 show_notification() {
 	local -r state="$1"
 	local title content="" button=""
@@ -204,7 +211,12 @@ show_notification() {
 	if [[ -n "$button" ]]; then
 		options+=(--button1 "$button" --button1-action "$TERMUX_PREFIX/bin/intellij-backend stop")
 	fi
+	if ! command -v termux-notification >/dev/null; then
+		echo "intellij-backend: the termux-api package is missing: pkg install termux-api" >&2
+		return 1
+	fi
 	create_notification_channel
+	local post_exit_code=0
 	timeout 10 termux-notification \
 		--id "$NOTIFICATION_ID" \
 		--channel "$NOTIFICATION_CHANNEL" \
@@ -216,7 +228,32 @@ show_notification() {
 		--content "$content" \
 		--action "am start -n $ANDROID_APP_ACTIVITY; $TERMUX_PREFIX/bin/intellij-backend internal-notify" \
 		"${options[@]}" \
-		>/dev/null 2>&1 || true
+		>/dev/null 2>&1 || post_exit_code=$?
+	if [[ $post_exit_code -eq 124 ]]; then
+		echo "intellij-backend: Termux:API didn't answer within 10 s: install the Termux:API app (same source as Termux) and open it once" >&2
+		return 1
+	elif [[ $post_exit_code -ne 0 ]]; then
+		echo "intellij-backend: termux-notification failed (exit code $post_exit_code)" >&2
+		return 1
+	fi
+	notification_is_showing "$title" && return 0
+	echo "intellij-backend: the notification \"$title\" isn't showing after posting it (termux-notification-list doesn't list it). Check that Termux:API may post notifications and has notification access (Android settings)" >&2
+	return 1
+}
+
+# Whether our notification shows title $1. Android may take a moment to list a new post.
+notification_is_showing() {
+	local -r title="$1"
+	local attempt listed
+	for attempt in 1 2 3; do
+		listed="$(timeout 10 termux-notification-list 2>/dev/null)" || listed=""
+		if jq -e --arg tag "$NOTIFICATION_ID" --arg title "$title" \
+			'any(.[]?; .tag == $tag and .title == $title)' <<<"$listed" >/dev/null 2>&1; then
+			return 0
+		fi
+		sleep 1
+	done
+	return 1
 }
 
 # Termux:API dismisses its notifications when tapped (setAutoCancel(true), always), so tapping
@@ -226,9 +263,9 @@ repost_notification() {
 	local -r status_file="$(running_status_file)"
 	local live_status
 	if [[ -n "$status_file" ]] && live_status="$(live_status_json "$status_file" 2>/dev/null)"; then
-		show_notification running "$live_status"
+		show_notification running "$live_status" || true
 	elif [[ -f "$LAUNCHER_PID_FILE" && -n "$(<"$LAUNCHER_PID_FILE")" ]] && process_exists "$(<"$LAUNCHER_PID_FILE")"; then
-		show_notification starting
+		show_notification starting || true
 	fi
 }
 
@@ -240,7 +277,7 @@ show_running_when_listed() {
 		status_file="$(running_status_file)"
 		if [[ -n "$status_file" ]] && live_status="$(live_status_json "$status_file" 2>/dev/null)" \
 			&& { [[ -z "$project" ]] || has_project "$live_status" "$project"; }; then
-			show_notification running "$live_status"
+			show_notification running "$live_status" || true
 			return
 		fi
 		sleep 2
@@ -274,9 +311,11 @@ command_run() {
 		fi
 		return 0
 	fi
+	# No backend without its notification (and its Cancel button): fail before IntelliJ runs.
+	# For a Gateway start this is the launcher's exit code.
+	show_notification starting || exit "$EXIT_NO_NOTIFICATION"
 	# Keeps Android from suspending Termux while the screen is off.
 	termux-wake-lock 2>/dev/null || true
-	show_notification starting
 	mkdir -p "$LOG_DIR"
 	# Its own process group, so that stop (the notification's Cancel) can end the launcher and its
 	# JVM before the backend has written its status file.
@@ -384,7 +423,8 @@ command_setup() {
 	fi
 	echo "- Termux and Termux:API: battery usage Unrestricted (Termux asks the first time it takes a wake lock)"
 	echo "- Android 14+: Developer options > Disable child process restrictions, so Android doesn't kill the backend"
-	echo "- Termux:API app installed (F-Droid or GitHub, same source as Termux), for the notification"
+	echo "- Termux:API app installed (F-Droid or GitHub, same source as Termux), allowed to post notifications and"
+	echo "  given notification access: start fails (exit code 5) when it can't show and read back its notification"
 }
 
 command_start() {
@@ -433,6 +473,12 @@ command_start() {
 	fi
 	local -r other_pid="$(other_intellij_pid)"
 	[[ -z "$other_pid" ]] || fail "$EXIT_CONFLICT" "another IntelliJ is running (pid $other_pid), e.g. the desktop IntelliJ"
+
+	# Checked here too, so the reason reaches the caller's stderr rather than only the log.
+	if ! show_notification starting; then
+		timeout 10 termux-notification-remove "$NOTIFICATION_ID" >/dev/null 2>&1 || true
+		fail "$EXIT_NO_NOTIFICATION" "not started: the backend's notification couldn't be shown"
+	fi
 
 	mkdir -p "$LOG_DIR"
 	local -r log_file="$LOG_DIR/backend-$(date +%Y%m%d-%H%M%S).log"
@@ -517,7 +563,7 @@ command_stop() {
 		# Still starting (no status file yet): end the launcher's process group, see command_run.
 		local -r launcher_pid="$(<"$LAUNCHER_PID_FILE")"
 		if process_exists "$launcher_pid"; then
-			show_notification stopping
+			show_notification stopping || true
 			echo "Cancelling the backend that is starting (launcher pid $launcher_pid)" >&2
 			kill -- "-$launcher_pid" 2>/dev/null || true
 		fi
@@ -525,7 +571,7 @@ command_stop() {
 	if [[ -n "$status_file" ]]; then
 		local -r backend_pid="$(basename "$status_file")"
 		local -r project="$(project_of "$status_file")"
-		show_notification stopping
+		show_notification stopping || true
 		echo "Stopping the backend for $project (pid $backend_pid)" >&2
 		# IntelliJ's own stop: asks the backend to save and exit.
 		local stop_output
