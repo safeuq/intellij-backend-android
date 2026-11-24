@@ -42,8 +42,8 @@ a decision or an action from the user. Docs named without a repo are in ideate-e
 ## Done (2026-11-23)
 
 | Item | Commit |
-| List popups (More Actions, the project widget's) as wide as their longest row (at least the backend's minimumSize), one-line rows, the hovered row selected, as `ListPopupImpl`; they were capped at 300 dp, wrapped and cut, and had no hover. Not checked live: a project row with a path (one project open) | ideate-editor 2e094e5 |
 |---|---|
+| List popups (More Actions, the project widget's) as wide as their longest row (at least the backend's minimumSize), one-line rows, the hovered row selected, as `ListPopupImpl`; they were capped at 300 dp, wrapped and cut, and had no hover. Not checked live: a project row with a path (one project open) | ideate-editor 2e094e5 |
 | Run widget icons drawn from their `_stroke.svg` variants (outlined Run, Debug, Stop), as `toStrokeIcon` does; they were solid green | ideate-editor 0c0397b |
 | Run widget: More Actions (`ActionPopupContent` through BackendPopups, rows by `line.signal`), debugger states (`filterOutRunIfDebugResumeIsPresent`), RunWidgetButtonLook fills from `EXECUTOR_ACTION_STATUS` and `RunWidget.*` keys, 500 ms update while running. Open: Stop while debugging a Gradle task (client-side `StopAction`, FrontendOtherwiseBackend), More Actions row icons and shortcuts, inline row buttons, `<html>` text in the selector popup's "All Configurations" row | ideate-editor 28c7bab |
 | Run widget works, as JetBrains Client (plan by intellij-fable, docs/plans/run-toolbar.md): composite `expandGroup` at `NewUiRunToolbar` gives Run/Rerun, Debug, Stop, More; selector name from `clientCurrentConfiguration`; selector popup `composite:RunConfigurationsActionGroup` (rows are `IS_PERFORM_GROUP` 0x20 groups); Build left the row. Still open: More Actions (`ActionPopupContent`), RunWidget green/red fills, inline row buttons, debugger states | ideate-editor 92634f7 |
