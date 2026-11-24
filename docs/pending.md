@@ -42,6 +42,7 @@ a decision or an action from the user. Docs named without a repo are in ideate-e
 
 | Item | Commit |
 |---|---|
+| Project tabs, stage 2: one backend connection serves every open project, so a project tab or the project popup switches at once with no "Trying to reconnect"; each project keeps its own editors, tree and completion (`docs/plans/shared-connection.md`) | ideate-editor `b1202c4` |
 | Usages popup after a ⌘-click closes on a press outside it (popups shown without focus never lost it), as IntelliJ's `cancelOnClickOutside`; `PopupWindowTest` covers it. ideate-editor docs/intellij-look.md §28 | ideate-editor 7c4c7fd |
 | Project tabs, stage 1: a tab per open project under the main toolbar as IntelliJ's macOS project tabs (30 high, equal widths, rounded fill for the selected and hovered tab, close on hover runs Close Project); a tab click switches with today's reconnect, which now always says Opening Project. Open: stage 2, one connection for every open project (docs/plans/shared-connection.md); closing the last project and a tab for IntelliJ IDEA Home not checked; no close button without hover (touch). docs/plans/project-tabs.md | ideate-editor c48a24c |
 | Tree selection band scrolls with the content at both ends (`drawRowBand`): rounded with its inset where the content ends, square where it goes on past the panel; all trees. Seen, not fixed: right after narrowing the Project panel, a selected deep row showed only its icon until a sideways scroll | ideate-editor 3ab4fc0 |
