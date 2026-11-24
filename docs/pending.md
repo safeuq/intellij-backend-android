@@ -42,6 +42,8 @@ a decision or an action from the user. Docs named without a repo are in ideate-e
 
 | Item | Commit |
 |---|---|
+| macOS DMG of the desktop app: `./gradlew :desktop:packageDmg` writes `desktop/build/dmg/Ideate-1.0.0.dmg` (172 MB) with JetBrains Client's runtime, the app's jars, six fonts and the icon SVGs inside; launcher marked as macOS SDK 26, signed ad hoc. Open before a public release: Developer ID signing and notarization, licence of the bundled JetBrains files, Intel build, version number (ideate-editor `docs/release-dmg.md`) | ideate-editor `5226a4d` |
+| App icon chosen (bulb with a brain of five circles in IntelliJ colours, three square bars as base): files for macOS, Windows, Linux, Android and iOS, dark and light sets, with the script that generates them, in ideate-editor `app-icon/`. Used by the DMG; not yet used by the Android app | ideate-editor `10dab0d` |
 | Phone upright: island pages keep their width while swiped (the gap stands outside every page; `SlidePager` lost its `inset` parameter) (`docs/mobile-layout.md`) | ideate-editor `27041e1` |
 | Phone project slide: the screen keeps its width while sliding (gap outside the page, `SlidePager(inset = false)`) | ideate-editor `a74f807` |
 | `SlidePager`: one generic pager for the island pages and the open projects on a phone; project screens follow a drag on the title bar, with rounded corners, a gap and an outline while sliding (`docs/plans/project-tabs.md`) | ideate-editor `f73eaa5` |
