@@ -42,6 +42,9 @@ a decision or an action from the user. Docs named without a repo are in ideate-e
 
 | Item | Commit |
 |---|---|
+| "Out of step with the backend" on every reopened editor: `EditSession.applyChecked` compared versions after the listener had put the saved caret back; now before (`docs/edit-protocol-backend.md`) | ideate-editor `6c0a651` |
+| A project closed from a tab that is not selected and opened again could not expand its Project tree: its old session was reused; now a new session, and tree state cleared when the shown project closes (`docs/plans/shared-connection.md`) | ideate-editor `81bc1ce` |
+| Project tab corner radius from the theme's `Island.arc` (10 dp) | ideate-editor `8c08c5e` |
 | Project tabs look as IntelliJ (header gradient behind the bar, insets by the tool window bars, 2 dp below); phone layouts have no tab bar and switch project by the project popup or a sideways slide on the title bar (`docs/plans/project-tabs.md`) | ideate-editor `a33b523` |
 | Project tabs, stage 2: one backend connection serves every open project, so a project tab or the project popup switches at once with no "Trying to reconnect"; each project keeps its own editors, tree and completion (`docs/plans/shared-connection.md`) | ideate-editor `b1202c4` |
 | Usages popup after a ⌘-click closes on a press outside it (popups shown without focus never lost it), as IntelliJ's `cancelOnClickOutside`; `PopupWindowTest` covers it. ideate-editor docs/intellij-look.md §28 | ideate-editor 7c4c7fd |
