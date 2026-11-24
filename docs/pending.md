@@ -42,6 +42,7 @@ a decision or an action from the user. Docs named without a repo are in ideate-e
 
 | Item | Commit |
 |---|---|
+| Phone project slide: the screen keeps its width while sliding (gap outside the page, `SlidePager(inset = false)`) | ideate-editor `a74f807` |
 | `SlidePager`: one generic pager for the island pages and the open projects on a phone; project screens follow a drag on the title bar, with rounded corners, a gap and an outline while sliding (`docs/plans/project-tabs.md`) | ideate-editor `f73eaa5` |
 | Phone layouts: a project switch slides the screens (the project switched to slides in, the other out, title bar included, no gap), with the island pages' spring; wide layouts unchanged (`docs/plans/project-tabs.md`) | ideate-editor `ed70370` |
 | "Out of step with the backend" on every reopened editor: `EditSession.applyChecked` compared versions after the listener had put the saved caret back; now before (`docs/edit-protocol-backend.md`) | ideate-editor `6c0a651` |
