@@ -42,6 +42,7 @@ a decision or an action from the user. Docs named without a repo are in ideate-e
 
 | Item | Commit |
 |---|---|
+| Android launcher icon: bulb scaled from 0.408 to 0.310 so it sits smaller in the launcher's crop frame (`ANDROID_TRANSFORM` in `app-icon/make_icons.py`; the PNGs and SVGs regenerated) | ideate-editor `4e19d16` |
 | Android app uses the Ideate launcher icon (dark set, bulb on black): `android:icon` and `android:roundIcon` in the manifest, resources from `app-icon/dark/android/res`; before this the manifest named no icon and the phone showed Android's default (ideate-editor `docs/android-app.md`, addendum of 2026-11-24) | ideate-editor `0dccc2b` |
 | Desktop: resizing a window no longer shows a white strip; the AWT window's own background and its content pane's are set to `Islands.windowBackground` and follow a theme change (`IdeateWindow` in `desktop/.../Main.kt`; ideate-editor `docs/intellij-look.md`, addendum of 2026-11-24). The strip's colour during a live drag was not looked at | ideate-editor `8043f8b` |
 | DMG version is 0.1.0: the file is now `desktop/build/dmg/Ideate-0.1.0.dmg`. `jpackage` refuses a version that starts with 0, so it is given 1.0.0 and the build writes 0.1.0 into `Info.plist` and the file name afterwards; this closes the "version number" point of the row below (ideate-editor `docs/release-dmg.md`, addendum of 24 Nov 2026, 19:08 IST) | ideate-editor `8683f23` |
