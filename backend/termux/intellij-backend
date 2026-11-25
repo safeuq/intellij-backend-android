@@ -504,7 +504,7 @@ command_start() {
 		return
 	fi
 	local -r other_pid="$(other_intellij_pid)"
-	[[ -z "$other_pid" ]] || fail "$EXIT_CONFLICT" "another IntelliJ is running (pid $other_pid), e.g. the desktop IntelliJ"
+	[[ -z "$other_pid" ]] || fail "$EXIT_CONFLICT" "another IntelliJ process (pid $other_pid) is using the same settings; close it, then try again"
 
 	# Checked here too, so the reason reaches the caller's stderr rather than only the log.
 	if ! show_notification starting; then

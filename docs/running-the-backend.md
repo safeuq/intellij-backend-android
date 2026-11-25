@@ -101,3 +101,7 @@ Seen 2026-11-19 on the S24: a backend started over adb (`adb shell run-as com.te
 | backend started with `adb shell run-as com.termux …` | `u:r:runas_app:s0:c148,…` |
 
 Commands from the Termux side can't see `/proc/<pid>` of `runas_app` processes, so `intellij-backend` there finds no running backend (no status file whose process is alive, no IntelliJ for `pgrep`). The app's `start` then took the "start a new backend" path: IntelliJ's launcher handed the project to the running JVM and exited, so the new parent removed the notification and released Termux's wake lock, and `start` failed with "the backend exited during startup" (exit 1). Since the commit after c4f62a7 the script counts such a process as running: from the Termux side its `/proc/<pid>` gives "Permission denied", where a process that is gone gives "No such file" (`process_exists`). Checked over SSH into Termux: `status --json` then listed the hidden backend's xtool. Its wake lock and notification still belong to the adb side, so start test backends from the app, a Termux session or SSH into Termux, not from adb run-as. Reading files and posting notifications over adb run-as is fine.
+
+## Addendum (2026-11-25): generic settings-in-use message
+
+`intellij-backend` no longer says the other IntelliJ is the desktop one, because any other IntelliJ process with the same settings folders blocks the start. On exit `4` it now prints: `another IntelliJ process (pid $other_pid) is using the same settings; close it, then try again`.
