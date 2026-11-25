@@ -13,7 +13,7 @@ a decision or an action from the user. Docs named without a repo are in ideate-e
 |---|---|---|---|---|
 | 42 | Menu bar: on macOS the system menu bar (File, Edit, View, …) from the backend's main menu; on other systems IntelliJ's three-line (hamburger) main menu button in the main toolbar, as on Windows and Linux (user request) | ui | to do | |
 | 43 | Right-click menu in the Git (VCS) tool window: the backend's context menu for commits, changes and branches (user request) | ui | to do | |
-| 44 | Problems tool window, and the problems' highlighting in the editor (errors, warnings, underlines, gutter and scrollbar marks) (user request) | ui | to do | |
+| 44 | Problems tool window, and the problems' highlighting in the editor (errors, warnings, underlines, gutter and scrollbar marks) (user request) | fable | in progress: plan written (ideate-editor 5d2f979); JetBrains Client draws the window itself, File tab from the document's highlighters, Project Errors over Fleet RPC `ProblemsViewApi`. Wave underlines already drawn; IntelliJ has no gutter mark for problems. Next: phase 1 (problem data with each highlight) and phase 2 (File tab) | ideate-editor docs/plans/problems-view.md |
 | 45 | Cmd+P: the Parameter Info popup (user request) | ui | to do | |
 | 46 | Bug: Cmd+O (Go to Class) is broken on a freshly opened client (user report) | ui | to do | |
 | 47 | Every Lux-based tool window that is easy to add (user request): list them, then add the easy ones | ui | to do | |
