@@ -53,8 +53,8 @@ a decision or an action from the user. Docs named without a repo are in ideate-e
 ## Done (2026-11-23)
 
 | Item | Commit |
-| SSH from the Tab S6 Lite to the S24 showed "No reply from the worker:" while the backend was starting: the worker's `host-launch` prints nothing on success; `WorkerHost.launch` now counts exit 0 with no reply as started (runtime, 2026-11-26) | ideate-editor `542fc70` |
 |---|---|
+| SSH from the Tab S6 Lite to the S24 showed "No reply from the worker:" while the backend was starting: the worker's `host-launch` prints nothing on success; `WorkerHost.launch` now counts exit 0 with no reply as started (runtime, 2026-11-26) | ideate-editor `542fc70` |
 | Empty SSH page: the two welcome lines had a 15 dp gap (user report); now stacked with none, as Gateway | ideate-editor `e344e12` |
 | SSH page with no hosts showed two buttons (New Project, New Connection) that opened the same dialog (user report); now Gateway's empty page: title without button, divider or search, SSH icon, two lines, one New Project | ideate-editor `478e1cf` |
 | Run console showed ANSI-coloured output without colour; coloured ranges (`CustomStyleHighlighterModel`) now use their own light/dark colours, as JetBrains Client does | ideate-editor `d23e286` |
