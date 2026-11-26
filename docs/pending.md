@@ -54,6 +54,7 @@ a decision or an action from the user. Docs named without a repo are in ideate-e
 
 | Item | Commit |
 |---|---|
+| Empty SSH page: the two welcome lines had a 15 dp gap (user report); now stacked with none, as Gateway | ideate-editor `e344e12` |
 | SSH page with no hosts showed two buttons (New Project, New Connection) that opened the same dialog (user report); now Gateway's empty page: title without button, divider or search, SSH icon, two lines, one New Project | ideate-editor `478e1cf` |
 | Run console showed ANSI-coloured output without colour; coloured ranges (`CustomStyleHighlighterModel`) now use their own light/dark colours, as JetBrains Client does | ideate-editor `d23e286` |
 | Tool window header tabs (Terminal, Run/Build, Problems) drawn as IntelliJ's Islands pill (`IslandsTabPainter`, user report): unselected tabs get the hover fill (was missing); the selected tab uses the inactive colours when its tool window isn't focused; the pill is inset 4 dp per side (compact 2) with IntelliJ's height rule and 6 dp corners; padding from `ContentLabel` (8 to the text, 8 text to ×, 3 after ×; 16 after the title); × shows on every closeable tab as IntelliJ's `canBeClosed`. Checked live on the Mac (Terminal, Problems, compact density); Run/Build, normal density and the light theme not seen | ideate-editor `f6d94ea` |
